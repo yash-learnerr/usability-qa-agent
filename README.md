@@ -1,6 +1,6 @@
 # QA Agent
 
-Markdown-first QA automation for MCP-enabled AI IDE and CLI agents.
+Markdown-first QA automation for MCP-enabled AI IDE and CLI agents. Runs on the `start-qa-agent` trigger to open a real MCP browser, test responsive and accessibility issues, capture screenshots and JSON reports, and optionally apply repository fixes when project mode is enabled.
 
 `start-qa-agent` is a trigger phrase, not a Python entrypoint. The agent should read `AGENT.md`, load `config/qa-config.json`, open the site with MCP browser tools, review responsive and UX issues, optionally fix the repo, and write reports.
 

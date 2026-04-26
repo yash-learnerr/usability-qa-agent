@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Configuration — QA Agent Dashboard</title>
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      /* ── Project toggle card ──────────────────────────────────────────────── */
+      .project-toggle-card {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 14px 16px;
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-sm);
+        background: var(--bg-3);
+        transition: border-color 0.2s;
+      }
+      .project-toggle-card.active {
+        border-color: var(--teal);
+        background: var(--teal-dim);
+      }
+      .project-toggle-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 3px;
+      }
+      .project-toggle-desc {
+        font-size: 12px;
+        color: var(--text-muted);
+        line-height: 1.4;
+      }
+      .project-toggle-desc strong {
+        color: var(--teal);
+      }
+
+      /* ── Mode badges ──────────────────────────────────────────────────────── */
+      .mode-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 700;
+        margin-bottom: 8px;
+      }
+      .mode-badge-report {
+        background: var(--blue-bg);
+        color: var(--blue);
+        border: 1px solid rgba(96, 165, 250, 0.2);
+      }
+      .mode-badge-project {
+        background: var(--teal-dim);
+        color: var(--teal);
+        border: 1px solid rgba(0, 201, 167, 0.2);
+      }
+
+      /* ── Repo input row ───────────────────────────────────────────────────── */
+      .repo-input-row {
+        display: flex;
+        gap: 8px;
+        align-items: stretch;
+      }
+      .repo-input-row .form-input {
+        flex: 1;
+      }
+      .btn-browse {
+        padding: 9px 14px;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border-light);
+        background: var(--surface-2);
+        color: var(--text-muted);
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: all 0.15s;
+        flex-shrink: 0;
+      }
+      .btn-browse:hover {
+        border-color: var(--teal);
+        color: var(--teal);
+        background: var(--teal-dim);
+      }
+
+      /* ── Directory browser ────────────────────────────────────────────────── */
+      .dir-browser {
+        margin-top: 8px;
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius-sm);
+        background: var(--bg-3);
+        overflow: hidden;
+      }
+      .dir-browser-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 12px;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+      }
+      .dir-current-path {
+        flex: 1;
+        font-family: monospace;
+        font-size: 12px;
+        color: var(--teal);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .dir-up-btn,
+      .dir-close-btn {
+        padding: 4px 10px;
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border-light);
+        background: none;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        color: var(--text-muted);
+        transition: all 0.15s;
+        white-space: nowrap;
+      }
+      .dir-up-btn:hover {
+        border-color: var(--teal);
+        color: var(--teal);
+      }
+      .dir-close-btn:hover {
+        border-color: var(--red);
+        color: var(--red);
+      }
+
+      .dir-list {
+        max-height: 220px;
+        overflow-y: auto;
+        padding: 6px;
+      }
+      .dir-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 10px;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        font-size: 13px;
+        color: var(--text);
+        transition: background 0.1s;
+        user-select: none;
+      }
+      .dir-item:hover {
+        background: var(--surface-2);
+      }
+      .dir-item.selected {
+        background: var(--teal-dim);
+        color: var(--teal);
+      }
+      .dir-item-icon {
+        font-size: 14px;
+        flex-shrink: 0;
+      }
+      .dir-item-name {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .dir-item-enter {
+        font-size: 11px;
+        color: var(--text-dim);
+        padding: 2px 6px;
+        border-radius: 3px;
+        border: 1px solid var(--border);
+      }
+      .dir-item:hover .dir-item-enter {
+        border-color: var(--teal);
+        color: var(--teal);
+      }
+
+      .dir-browser-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 10px 12px;
+        background: var(--surface);
+        border-top: 1px solid var(--border);
+      }
+      .dir-selected-label {
+        font-size: 12px;
+        color: var(--text-muted);
+        font-family: monospace;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        flex: 1;
+      }
+      .btn-sm {
+        padding: 6px 14px;
+        font-size: 12px;
+      }
+
+      /* ── Mode info box ────────────────────────────────────────────────────── */
+      .mode-info {
+        padding: 12px 14px;
+        border-radius: var(--radius-sm);
+        font-size: 12px;
+        line-height: 1.6;
+        margin-top: 4px;
+      }
+      .mode-info-report {
+        background: var(--blue-bg);
+        border: 1px solid rgba(96, 165, 250, 0.2);
+        color: var(--blue);
+      }
+      .mode-info-project {
+        background: var(--teal-dim);
+        border: 1px solid rgba(0, 201, 167, 0.2);
+        color: var(--teal);
+      }
+      .mode-info ul {
+        margin: 6px 0 0 16px;
+      }
+      .mode-info li {
+        margin-bottom: 2px;
+      }
+    </style>
+  </head>
+  <body>
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-icon">🧪</div>
+        <span class="sidebar-brand-name">QA Agent</span>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="index.html" class="nav-item"
+          ><span class="nav-icon">📊</span> Overview</a
+        >
+        <a href="reports.html" class="nav-item"
+          ><span class="nav-icon">📄</span> Reports</a
+        >
+        <a href="config.html" class="nav-item active"
+          ><span class="nav-icon">⚙️</span> Configuration</a
+        >
+      </nav>
+      <div class="sidebar-status">
+        <span class="status-dot"></span> Operational
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <div class="page-header">
+        <div class="page-title">⚙️ Agent Configuration</div>
+        <div class="page-subtitle">
+          Settings are saved to <code>qa-agent/config/qa-config.json</code> and used when you run <code>start-qa-agent</code>
+        </div>
+      </div>
+
+      <form
+        id="config-form"
+        onsubmit="saveConfig(event)"
+        style="max-width: 680px"
+      >
+        <!-- ── Basic Settings ──────────────────────────────────────────────── -->
+        <div class="form-section">
+          <div class="form-section-title">Basic Settings</div>
+
+          <!-- Website URL -->
+          <div class="form-group">
+            <label class="form-label"
+              >Website URL <span class="req">*</span></label
+            >
+            <input
+              type="url"
+              id="website_url"
+              class="form-input"
+              placeholder="http://localhost:5173"
+            />
+            <div class="form-hint">
+              The seed URL — QA agent will crawl all internal pages from here.
+            </div>
+          </div>
+
+          <!-- Is this your project? -->
+          <div class="form-group">
+            <div class="project-toggle-card" id="project-toggle-card">
+              <div style="flex: 1">
+                <div class="project-toggle-title">Is this your project?</div>
+                <div class="project-toggle-desc" id="project-mode-desc">
+                  <span class="mode-badge mode-badge-report"
+                    >📊 Report Only</span
+                  ><br />
+                  Screenshots &amp; unit tests will be generated. No code fixes
+                  applied.
+                </div>
+              </div>
+              <label class="toggle-label" style="flex-shrink: 0; margin: 0">
+                <input
+                  type="checkbox"
+                  id="is_project"
+                  class="toggle-checkbox"
+                  onchange="toggleProjectMode()"
+                />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Repository Path — shown only when is_project = true -->
+          <div id="repo-path-group" class="form-group" style="display: none">
+            <label class="form-label"
+              >Repository Path <span class="req">*</span></label
+            >
+            <div class="repo-input-row">
+              <input
+                type="text"
+                id="repository_path"
+                class="form-input"
+                placeholder="/home/user/my-project  or  ./wildlife-admin"
+              />
+              <button type="button" class="btn-browse" onclick="openBrowser()">
+                📁 Browse
+              </button>
+            </div>
+            <div class="form-hint">
+              Select the frontend repository folder. Fixes will be applied here.
+            </div>
+
+            <!-- Directory browser panel -->
+            <div id="dir-browser" class="dir-browser" style="display: none">
+              <div class="dir-browser-header">
+                <span id="dir-current-path" class="dir-current-path">/</span>
+                <button type="button" class="dir-up-btn" onclick="browseUp()">
+                  ↑ Up
+                </button>
+                <button
+                  type="button"
+                  class="dir-close-btn"
+                  onclick="closeBrowser()"
+                >
+                  ✕
+                </button>
+              </div>
+              <div id="dir-list" class="dir-list">
+                <div class="loading">Loading…</div>
+              </div>
+              <div class="dir-browser-footer">
+                <span id="dir-selected-label" class="dir-selected-label"
+                  >No folder selected</span
+                >
+                <button
+                  type="button"
+                  class="btn btn-primary btn-sm"
+                  onclick="selectCurrentDir()"
+                >
+                  ✓ Select This Folder
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Single Page -->
+          <div class="form-group">
+            <label class="form-label"
+              >Single Page URL
+              <span style="font-weight: 400; color: var(--text-muted)"
+                >(optional)</span
+              ></label
+            >
+            <input
+              type="url"
+              id="single_page"
+              class="form-input"
+              placeholder="Leave blank for full-site crawl"
+            />
+            <div class="form-hint">
+              If set, only this page will be tested (skips crawl).
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Authentication ──────────────────────────────────────────────── -->
+        <div class="form-section">
+          <div class="form-section-title">Authentication</div>
+          <div class="form-group">
+            <label class="toggle-label">
+              <input
+                type="checkbox"
+                id="auth_required"
+                class="toggle-checkbox"
+                onchange="toggleAuthMode()"
+              />
+              <span class="toggle-slider"></span>
+              Authentication Required
+            </label>
+          </div>
+          <div id="auth-mode-group" style="display: none">
+            <div class="info-box">
+              🔒 Credentials are never stored. The MCP browser window opens the
+              login page and waits for you to log in manually.
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Checks ──────────────────────────────────────────────────────── -->
+        <div class="form-section">
+          <div class="form-section-title">Checks to Run</div>
+          <div class="checks-grid">
+            <label class="check-label"
+              ><input type="checkbox" name="check_overflow" checked />
+              Horizontal Overflow</label
+            >
+            <label class="check-label"
+              ><input type="checkbox" name="check_clipping" checked /> Content
+              Clipping</label
+            >
+            <label class="check-label"
+              ><input type="checkbox" name="check_touch_targets" checked />
+              Touch Targets (44×44px)</label
+            >
+            <label class="check-label"
+              ><input type="checkbox" name="check_alt_text" checked /> Missing
+              Alt Text</label
+            >
+            <label class="check-label"
+              ><input type="checkbox" name="check_focus_styles" checked /> Focus
+              Styles</label
+            >
+            <label class="check-label"
+              ><input type="checkbox" name="check_color_contrast" checked />
+              Color Contrast</label
+            >
+            <label class="check-label"
+              ><input type="checkbox" name="check_typography" checked />
+              Typography</label
+            >
+            <label class="check-label"
+              ><input type="checkbox" name="check_tab_overflow" checked /> Tab
+              Bar Overflow</label
+            >
+            <label class="check-label"
+              ><input type="checkbox" name="check_responsive_grids" checked />
+              Responsive Grids</label
+            >
+            <label class="check-label"
+              ><input type="checkbox" name="check_text_overflow" checked />
+              Text Overflow</label
+            >
+            <label class="check-label"
+              ><input type="checkbox" name="check_overlap" checked />
+              Overlap Detection</label
+            >
+            <label class="check-label"
+              ><input type="checkbox" name="check_responsive_media" checked />
+              Responsive Media</label
+            >
+            <label class="check-label"
+              ><input type="checkbox" name="check_responsive_tables" checked />
+              Responsive Tables</label
+            >
+            <label class="check-label"
+              ><input type="checkbox" name="check_fixed_ui_obstruction" checked />
+              Sticky UI Obstruction</label
+            >
+            <label class="check-label"
+              ><input type="checkbox" name="check_url_response" checked />
+              URL Response</label
+            >
+            <label class="check-label"
+              ><input type="checkbox" name="check_cta_redirects" checked />
+              CTA Redirects</label
+            >
+            <label class="check-label"
+              ><input type="checkbox" name="check_issue_screenshots" checked />
+              Issue Screenshots</label
+            >
+          </div>
+        </div>
+
+        <!-- ── Viewports ───────────────────────────────────────────────────── -->
+        <div class="form-section">
+          <div class="form-section-title">Viewports</div>
+          <div class="viewport-grid">
+            <div class="viewport-row">
+              <span class="viewport-name">📱 Mobile</span>
+              <input
+                type="number"
+                id="mobile_width"
+                class="form-input form-input-sm"
+                value="375"
+              />
+              <span class="viewport-x">×</span>
+              <input
+                type="number"
+                id="mobile_height"
+                class="form-input form-input-sm"
+                value="812"
+              />
+              <span class="viewport-unit">px</span>
+            </div>
+            <div class="viewport-row">
+              <span class="viewport-name">📟 Tablet</span>
+              <input
+                type="number"
+                id="tablet_width"
+                class="form-input form-input-sm"
+                value="768"
+              />
+              <span class="viewport-x">×</span>
+              <input
+                type="number"
+                id="tablet_height"
+                class="form-input form-input-sm"
+                value="1024"
+              />
+              <span class="viewport-unit">px</span>
+            </div>
+            <div class="viewport-row">
+              <span class="viewport-name">🖥️ Desktop</span>
+              <input
+                type="number"
+                id="desktop_width"
+                class="form-input form-input-sm"
+                value="1440"
+              />
+              <span class="viewport-x">×</span>
+              <input
+                type="number"
+                id="desktop_height"
+                class="form-input form-input-sm"
+                value="900"
+              />
+              <span class="viewport-unit">px</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── URL History ─────────────────────────────────────────────────── -->
+        <div class="form-section">
+          <div class="form-section-title">URL History</div>
+          <div id="url-history" class="url-history">
+            <div class="empty">No URL history yet.</div>
+          </div>
+        </div>
+
+        <!-- ── Actions ────────────────────────────────────────────────────── -->
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">
+            💾 Save Configuration
+          </button>
+          <button type="button" class="btn" onclick="runQAFromConfig()">
+            ▶ Save &amp; Show Run Command
+          </button>
+          <button type="button" class="btn btn-danger" onclick="resetConfig()">
+            ↺ Reset to Defaults
+          </button>
+        </div>
+        <div id="save-status" class="save-status"></div>
+      </form>
+    </main>
+
+    <script src="dashboard.js"></script>
+  </body>
+</html>

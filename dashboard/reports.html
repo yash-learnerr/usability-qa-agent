@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reports — QA Agent Dashboard</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-icon">🧪</div>
+        <span class="sidebar-brand-name">QA Agent</span>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="index.html" class="nav-item"
+          ><span class="nav-icon">📊</span> Overview</a
+        >
+        <a href="reports.html" class="nav-item active"
+          ><span class="nav-icon">📄</span> Reports</a
+        >
+        <a href="config.html" class="nav-item"
+          ><span class="nav-icon">⚙️</span> Configuration</a
+        >
+      </nav>
+      <div class="sidebar-status">
+        <span class="status-dot"></span> Operational
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <div class="page-header">
+        <div class="page-title">Reports</div>
+        <div class="page-subtitle">
+          All QA runs with issues, fixes, and page-level results
+        </div>
+      </div>
+
+      <div class="filters">
+        <input
+          type="text"
+          id="filter-url"
+          placeholder="Filter by URL…"
+          class="filter-input"
+          oninput="filterReports()"
+        />
+        <select
+          id="filter-status"
+          class="filter-select"
+          onchange="filterReports()"
+        >
+          <option value="">All Health</option>
+          <option value="clean">✅ Clean</option>
+          <option value="fixed">🔧 All Fixed</option>
+          <option value="partial">⚠️ Partial</option>
+          <option value="issues">❌ Issues</option>
+        </select>
+        <input
+          type="date"
+          id="filter-date"
+          class="filter-input"
+          style="width: auto"
+          onchange="filterReports()"
+        />
+      </div>
+
+      <div class="card" style="padding: 0; overflow: hidden">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>URL</th>
+              <th>Pages</th>
+              <th>Issues Found</th>
+              <th>Issues Fixed</th>
+              <th>Health</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="reports-tbody">
+            <tr>
+              <td colspan="7" class="loading">Loading reports…</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pagination" id="pagination"></div>
+    </main>
+
+    <script src="dashboard.js"></script>
+  </body>
+</html>

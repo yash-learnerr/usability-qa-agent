@@ -1,0 +1,417 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Report — QA Agent Dashboard</title>
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      /* ── Page group header inside Issues tab ────────────────────────────── */
+      .page-group {
+        margin-bottom: 20px;
+      }
+      .page-group-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        margin-bottom: 8px;
+        cursor: pointer;
+        user-select: none;
+        transition: border-color 0.15s;
+      }
+      .page-group-header:hover {
+        border-color: var(--border-light);
+      }
+      .page-group-header.collapsed + .page-group-issues {
+        display: none;
+      }
+      .page-group-index {
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--text-dim);
+        min-width: 24px;
+      }
+      .page-group-url {
+        flex: 1;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--teal);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .page-group-meta {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+      }
+      .page-group-count {
+        font-size: 11px;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 10px;
+        background: var(--red-bg);
+        color: var(--red);
+        border: 1px solid rgba(248, 113, 113, 0.2);
+      }
+      .page-group-count.clean {
+        background: var(--green-bg);
+        color: var(--green);
+        border-color: rgba(52, 211, 153, 0.2);
+      }
+      .page-group-chevron {
+        font-size: 11px;
+        color: var(--text-dim);
+        transition: transform 0.2s;
+      }
+      .page-group-header.collapsed .page-group-chevron {
+        transform: rotate(-90deg);
+      }
+      .page-group-issues {
+        padding-left: 0;
+      }
+
+      /* ── Unit test cards ──────────────────────────────────────────────────── */
+      .ut-card {
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 14px 16px;
+        margin-bottom: 8px;
+        background: var(--bg-3);
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        transition: border-color 0.15s;
+      }
+      .ut-card:hover {
+        border-color: var(--border-light);
+      }
+      .ut-status-icon {
+        font-size: 18px;
+        flex-shrink: 0;
+        margin-top: 1px;
+      }
+      .ut-body {
+        flex: 1;
+        min-width: 0;
+      }
+      .ut-name {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 3px;
+      }
+      .ut-desc {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+      }
+      .ut-meta {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .ut-meta span {
+        font-size: 11px;
+        color: var(--text-dim);
+      }
+      .ut-code {
+        margin-top: 8px;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 10px 12px;
+        font-family: monospace;
+        font-size: 11px;
+        color: var(--teal);
+        white-space: pre-wrap;
+        word-break: break-all;
+        display: none;
+      }
+      .ut-card.expanded .ut-code {
+        display: block;
+      }
+      .ut-toggle {
+        font-size: 11px;
+        color: var(--text-dim);
+        cursor: pointer;
+        border: none;
+        background: none;
+        padding: 2px 6px;
+        border-radius: 3px;
+        transition: color 0.15s;
+      }
+      .ut-toggle:hover {
+        color: var(--teal);
+      }
+
+      /* ── Issue card with screenshot ──────────────────────────────────────── */
+      .issue-card--with-shot {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+      }
+      .issue-card-main {
+        flex: 1;
+        min-width: 0;
+      }
+
+      /* ── Screenshot panel (can show 1 or 2 thumbnails) ──────────────────── */
+      .issue-screenshots-panel {
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .issue-screenshot {
+        width: 140px;
+        position: relative;
+        border-radius: var(--radius-sm);
+        overflow: hidden;
+        border: 1px solid var(--border);
+        background: var(--bg);
+        cursor: zoom-in;
+      }
+      .issue-screenshot--focused {
+        border-color: var(--red);
+        box-shadow: 0 0 0 2px rgba(255, 59, 48, 0.15);
+      }
+      .issue-screenshot--context {
+        opacity: 0.85;
+      }
+      .issue-screenshot--context:hover {
+        opacity: 1;
+      }
+      .issue-screenshot img {
+        width: 100%;
+        height: 90px;
+        object-fit: cover;
+        display: block;
+        transition: transform 0.2s;
+      }
+      .issue-screenshot:hover img {
+        transform: scale(1.04);
+      }
+      .issue-screenshot-label {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: rgba(0, 0, 0, 0.55);
+        color: #fff;
+        font-size: 10px;
+        font-weight: 600;
+        text-align: center;
+        padding: 2px 0;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .issue-screenshot-label--focused {
+        background: rgba(255, 59, 48, 0.85);
+      }
+      .issue-screenshot-bounds-hint {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        font-size: 14px;
+        background: rgba(0, 0, 0, 0.6);
+        border-radius: 50%;
+        width: 22px;
+        height: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* ── Screenshot lightbox ─────────────────────────────────────────────── */
+      #shot-lightbox {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.82);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+      }
+      #shot-lightbox.open {
+        display: flex;
+      }
+      #shot-lightbox-scroll {
+        max-width: 90vw;
+        max-height: 88vh;
+        overflow-y: auto;
+        overflow-x: hidden;
+        border-radius: 6px;
+        box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6);
+      }
+      #shot-lightbox img {
+        width: 100%;
+        display: block;
+      }
+      #shot-lightbox-close {
+        position: absolute;
+        top: 18px;
+        right: 22px;
+        font-size: 28px;
+        color: #fff;
+        cursor: pointer;
+        line-height: 1;
+        opacity: 0.8;
+      }
+      #shot-lightbox-close:hover {
+        opacity: 1;
+      }
+
+      /* Summary pills */
+      .ut-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: var(--radius-sm);
+        font-size: 12px;
+        font-weight: 700;
+        border: 1px solid var(--border);
+      }
+      .ut-pill-total {
+        background: var(--surface-2);
+        color: var(--text);
+      }
+      .ut-pill-passed {
+        background: var(--green-bg);
+        color: var(--green);
+        border-color: rgba(52, 211, 153, 0.2);
+      }
+      .ut-pill-failed {
+        background: var(--red-bg);
+        color: var(--red);
+        border-color: rgba(248, 113, 113, 0.2);
+      }
+      .ut-pill-skipped {
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text-muted);
+      }
+    </style>
+  </head>
+  <body>
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-icon">🧪</div>
+        <span class="sidebar-brand-name">QA Agent</span>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="index.html" class="nav-item"
+          ><span class="nav-icon">📊</span> Overview</a
+        >
+        <a href="reports.html" class="nav-item active"
+          ><span class="nav-icon">📄</span> Reports</a
+        >
+        <a href="config.html" class="nav-item"
+          ><span class="nav-icon">⚙️</span> Configuration</a
+        >
+      </nav>
+      <div class="sidebar-status">
+        <span class="status-dot"></span> Operational
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <a href="reports.html" class="back-link">← Back to Reports</a>
+      <div class="page-header" style="margin-top: 4px">
+        <div class="page-title" id="report-title">Report</div>
+        <div class="page-subtitle" id="report-meta"></div>
+      </div>
+
+      <div class="kpi-grid" id="report-kpis"></div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="showTab('issues', this)">
+          Issues Found
+        </button>
+        <button class="tab-btn" onclick="showTab('fixes', this)">
+          Fixes Applied
+        </button>
+      </div>
+
+      <div id="tab-issues" class="tab-content active">
+        <div class="card-header">
+          <div class="card-title">Issues Found</div>
+          <div class="filters" style="margin-bottom: 0">
+            <select
+              id="issue-page-filter"
+              class="filter-select"
+              onchange="filterIssues()"
+              style="max-width: 220px"
+            >
+              <option value="">All Pages</option>
+            </select>
+            <select
+              id="issue-type-filter"
+              class="filter-select"
+              onchange="filterIssues()"
+            >
+              <option value="">All Types</option>
+              <option value="UI">UI</option>
+              <option value="UX">UX</option>
+              <option value="Accessibility">Accessibility</option>
+              <option value="Bug">Bug</option>
+            </select>
+            <select
+              id="issue-severity-filter"
+              class="filter-select"
+              onchange="filterIssues()"
+            >
+              <option value="">All Severity</option>
+              <option value="High">High</option>
+              <option value="Medium">Medium</option>
+              <option value="Low">Low</option>
+            </select>
+          </div>
+        </div>
+        <div id="issues-list"></div>
+      </div>
+
+      <div id="tab-fixes" class="tab-content">
+        <div class="card-title" style="margin-bottom: 14px">Fixes Applied</div>
+        <div id="fixes-list"></div>
+      </div>
+
+    </main>
+
+    <script src="dashboard.js"></script>
+    <div id="shot-lightbox">
+      <span
+        id="shot-lightbox-close"
+        onclick="
+          document.getElementById('shot-lightbox').classList.remove('open')
+        "
+        >✕</span
+      >
+      <div id="shot-lightbox-scroll">
+        <img id="shot-lightbox-img" src="" alt="screenshot" />
+      </div>
+    </div>
+    <script>
+      document.addEventListener("click", (e) => {
+        const thumb = e.target.closest(".issue-screenshot");
+        if (!thumb) return;
+        const src = thumb.querySelector("img")?.src;
+        if (!src) return;
+        document.getElementById("shot-lightbox-img").src = src;
+        document.getElementById("shot-lightbox").classList.add("open");
+      });
+      document
+        .getElementById("shot-lightbox")
+        .addEventListener("click", (e) => {
+          if (e.target === e.currentTarget)
+            e.currentTarget.classList.remove("open");
+        });
+    </script>
+  </body>
+</html>

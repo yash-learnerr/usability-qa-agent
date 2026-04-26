@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>QA Agent Dashboard</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-icon">QA</div>
+        <span class="sidebar-brand-name">QA Agent</span>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="index.html" class="nav-item active">Overview</a>
+        <a href="reports.html" class="nav-item">Reports</a>
+        <a href="config.html" class="nav-item">Configuration</a>
+      </nav>
+      <div class="sidebar-status">
+        <span class="status-dot"></span> Operational
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <div class="page-header">
+        <div class="page-title">Overview</div>
+        <div class="page-subtitle">
+          Responsive QA runs, configuration, and report history
+        </div>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-icon-wrap teal">Runs</div>
+          <div>
+            <div class="kpi-label">Total QA Runs</div>
+            <div class="kpi-value" id="total-runs">-</div>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon-wrap red">Issues</div>
+          <div>
+            <div class="kpi-label">Issues Found</div>
+            <div class="kpi-value" id="total-issues">-</div>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon-wrap green">Fixed</div>
+          <div>
+            <div class="kpi-label">Issues Fixed</div>
+            <div class="kpi-value" id="total-fixed">-</div>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon-wrap yellow">Last</div>
+          <div>
+            <div class="kpi-label">Last Run</div>
+            <div class="kpi-value" id="last-run" style="font-size: 16px; margin-top: 4px">
+              -
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="info-box" style="margin-bottom: 16px">
+          Save configuration in the dashboard, then run
+          <code>start-qa-agent</code> in your AI IDE or CLI agent.
+        </div>
+        <div class="card-title">Recent Reports</div>
+        <div id="recent-reports" class="report-list">
+          <div class="loading">Loading reports...</div>
+        </div>
+      </div>
+    </main>
+
+    <script src="dashboard.js"></script>
+  </body>
+</html>
